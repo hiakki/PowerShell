@@ -1,0 +1,35 @@
+param (
+[Parameter(mandatory = $true)]
+[string]$IP,
+[Parameter(mandatory = $true)]
+[string]$Port,
+[Parameter(mandatory = $true)]
+[string]$Username,
+[Parameter(mandatory = $true)]
+[string]$Password,
+[Parameter(mandatory = $true)]
+[string]$Source,
+[Parameter(mandatory = $true)]
+[string]$Destination
+)
+
+# Invoke-WebRequest -UseBasicParsing -Uri https://the.earth.li/~sgtatham/putty/0.72/w64/pscp.exe -OutFile pscp.exe
+# Invoke-WebRequest -UseBasicParsing -Uri https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe -OutFile plink.exe
+
+(gci $Source).LastWriteTime > LastWriteTime
+(gci $Source).CreationTime > CreationTime
+(gci $Source).LastAccessTime > LastAccessTime
+
+echo y | .\pscp.exe -pw $Password -P $Port $Source $Username@${IP}:$Destination
+echo y | .\pscp.exe -pw $Password -P $Port LastWriteTime $Username@${IP}:LastWriteTime
+echo y | .\pscp.exe -pw $Password -P $Port CreationTime $Username@${IP}:CreationTime
+echo y | .\pscp.exe -pw $Password -P $Port LastAccessTime $Username@${IP}:LastAccessTime
+
+echo y | .\plink.exe -ssh -pw $Password -P $Port $Username@${IP} "(gci $Destination).LastWriteTime = (gc LastWriteTime) -join '';(gci $Destination).CreationTime = (gc CreationTime) -join '';(gci $Destination).LastAccessTime = (gc LastAccessTime) -join '';Remove-Item LastWriteTime -ErrorAction SilentlyContinue;Remove-Item CreationTime -ErrorAction SilentlyContinue;Remove-Item LastAccessTime -ErrorAction SilentlyContinue"
+
+Remove-Item LastWriteTime -ErrorAction SilentlyContinue
+Remove-Item CreationTime -ErrorAction SilentlyContinue
+Remove-Item LastAccessTime -ErrorAction SilentlyContinue
+
+# Remove-Item .\pscp.exe -ErrorAction SilentlyContinue
+# Remove-Item .\plink.exe -ErrorAction SilentlyContinue
